@@ -1,23 +1,26 @@
 import React from 'react';
-import Container from '@material-ui/core/Container';
-import TextField from '@material-ui/core/TextField';
-import Button from '@material-ui/core/Button';
-import Typography from '@material-ui/core/Typography';
-import Grid from '@material-ui/core/Grid';
-import Link from '@material-ui/core/Link';
-import { Link as RouterLink } from 'react-router-dom';
-import { withRouter } from 'react-router-dom';
+import Container from '@mui/material/Container';
+import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
+import Typography from '@mui/material/Typography';
+import Grid from '@mui/material/Grid';
+import Link from '@mui/material/Link';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 
 class Login extends React.Component {
-    constructor(props){
+    constructor(props) {
         super(props);
         this.state = {
             username: '',
-            password: ''
-        }
+            password: '',
+            error_message: '',
+            show_error_message: false
+        };
     }
 
     handleSignIn(event) {
+        event.preventDefault();
+
         fetch('/api/auth/login', {
             method: 'POST',
             headers: {
@@ -25,8 +28,8 @@ class Login extends React.Component {
                 'Content-type': 'application/json'
             },
             body: JSON.stringify({
-                'username': this.state.username,
-                'password': this.state.password
+                username: this.state.username,
+                password: this.state.password
             })
         }).then((response) => {
             if (response.status === 403) {
@@ -35,7 +38,7 @@ class Login extends React.Component {
                 });
             } else if (response.status === 200) {
                 this.props.checkLoginStatus();
-                this.props.history.push("/");
+                this.props.navigate("/");
             }
         }).catch((error) => {
             this.setState({
@@ -59,9 +62,9 @@ class Login extends React.Component {
                     name="username"
                     id="username"
                     label="Username"
-                    autocomplete="username"
-                    autofocus
-                    onChange = {(event) => this.setState({username: event.target.value})}
+                    autoComplete="username"
+                    autoFocus
+                    onChange={(event) => this.setState({ username: event.target.value })}
                 />
                 <TextField
                     variant="outlined"
@@ -72,10 +75,9 @@ class Login extends React.Component {
                     id="password"
                     label="Password"
                     type="password"
-                    onChange = {(event) => this.setState({password: event.target.value})}
+                    onChange={(event) => this.setState({ password: event.target.value })}
                 />
                 <Button
-                    type="sumbit"
                     fullWidth
                     variant="contained"
                     color="primary"
@@ -95,4 +97,9 @@ class Login extends React.Component {
     }
 }
 
-export default withRouter(Login);
+function LoginWithNavigate(props) {
+    const navigate = useNavigate();
+    return <Login {...props} navigate={navigate} />;
+}
+
+export default LoginWithNavigate;

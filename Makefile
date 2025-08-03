@@ -1,10 +1,10 @@
 .PHONY: devbuild
 devbuild:
-	docker-compose -f docker-compose.dev.yaml build
+	docker compose -f docker-compose.dev.yaml build
 
 .PHONY: devrun
 devrun:
-	docker-compose -f docker-compose.dev.yaml up
+	docker compose -f docker-compose.dev.yaml up
 
 .PHONY: imagesbuild
 imagesbuild:
@@ -14,8 +14,8 @@ imagesbuild:
 
 .PHONY: prodbuild
 prodbuild:
-	docker-compose -f docker-compose.prod.yaml build
+	docker compose -f docker-compose.prod.yaml build
 
 .PHONY: prodrun
 prodrun:
-	docker-compose -f docker-compose.prod.yaml up
+	docker compose -f docker-compose.prod.yaml up

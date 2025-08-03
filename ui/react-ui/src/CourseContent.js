@@ -1,145 +1,96 @@
-import React from "react";
-import Container from '@material-ui/core/Container';
-import Typography from '@material-ui/core/Typography';
-import Grid from '@material-ui/core/Grid';
-import Card from '@material-ui/core/Card';
-import CardMedia from '@material-ui/core/CardMedia';
-import CardContent from '@material-ui/core/CardContent';
-import CardActionArea from '@material-ui/core/CardActionArea';
-import DoneIcon from '@material-ui/icons/Done';
-import LinearProgress from '@material-ui/core/LinearProgress';
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+
+import Container from '@mui/material/Container';
+import Typography from '@mui/material/Typography';
+import Grid from '@mui/material/Grid';
+import Card from '@mui/material/Card';
+import CardMedia from '@mui/material/CardMedia';
+import CardContent from '@mui/material/CardContent';
+import CardActionArea from '@mui/material/CardActionArea';
+import DoneIcon from '@mui/icons-material/Done';
+import LinearProgress from '@mui/material/LinearProgress';
 
 const COMMON_TITLE = 'Security Courses';
 const COMMON_ABSTRACT = 'Choose your specialization';
 
-class CourseContent extends React.Component {
+function CourseContent() {
+    const [content, setContent] = useState([]);
+    const [title, setTitle] = useState(COMMON_TITLE);
+    const [abstract, setAbstract] = useState(COMMON_ABSTRACT);
 
-    constructor() {
-        super();
-        this.state = {
-            'content': [],
-            'title': 'Security Courses',
-            'abstract': 'Choose your specialization',
-        }
-    }
+    const navigate = useNavigate();
+    const { courseSlug } = useParams();
 
-    fetchLessons(courseSlug) {
-        return fetch('/api/courses/'+courseSlug+'/lessons').then(function(response){
-            return response.json();
-        })
-    }
+    useEffect(() => {
+        if (courseSlug) {
+            fetch(`/api/courses/${courseSlug}`)
+                .then((res) => res.json())
+                .then((course) => {
+                    setTitle(course.title);
+                    setAbstract(course.abstract);
+                });
 
-    fetchCourseInfo(courseSlug) {
-        return fetch('/api/courses/'+courseSlug).then(function(response){
-            return response.json();
-        })
-    }
-
-
-    componentDidMount() {
-        if (this.props.match.params.hasOwnProperty('courseSlug')) {
-            this.fetchCourseInfo(this.props.match.params.courseSlug).then(
-                course => {
-                    this.setState({'title': course.title, 'abstract': course.abstract});
-            });
-            this.fetchLessons(this.props.match.params.courseSlug).then(
-                courses => {
-                    this.setState({'content': courses});
-            });
+            fetch(`/api/courses/${courseSlug}/lessons`)
+                .then((res) => res.json())
+                .then(setContent);
         } else {
-            this.setState({'title': COMMON_TITLE, 'abstract': COMMON_ABSTRACT});
-            fetch('/api/courses/').then(function(response){
-                return response.json();
-            }).then(courses => {
-                this.setState({'content': courses});
-            });
-        }
-    }
+            setTitle(COMMON_TITLE);
+            setAbstract(COMMON_ABSTRACT);
 
-    componentWillReceiveProps(nextProps) {
-        if (nextProps.match.params.hasOwnProperty('courseSlug')) {
-            this.fetchCourseInfo(nextProps.match.params.courseSlug).then(
-                course => {
-                    this.setState({'title': course.title, 'abstract': course.abstract});
-            });
-            this.fetchLessons(nextProps.match.params.courseSlug).then(
-                courses => {
-                    this.setState({'content': courses});
-            });
+            fetch('/api/courses/')
+                .then((res) => res.json())
+                .then(setContent);
+        }
+    }, [courseSlug]);
+
+    const handleClick = (course) => {
+        if (courseSlug) {
+            navigate(`/courses/${courseSlug}/${course.slug}`);
         } else {
-            this.setState({'title': COMMON_TITLE, 'abstract': COMMON_ABSTRACT});
-            fetch('/api/courses/').then(function(response){
-                return response.json();
-            }).then(courses => {
-                this.setState({'content': courses});
-            });
+            navigate(`/courses/${course.slug}`);
         }
-    }
+    };
 
-    render () {
-        return (
+    return (
         <div>
-            <div>
-                <Container maxWidth="sm">
-                    <Typography component="h1" variant="h2" align="center" color="textPrimary" gutterBottom>
-                        {this.state.title}
-                    </Typography>
-                    <Typography variant="h5" align="center" color="textSecondary" paragraph>
-                        {this.state.abstract}
-                    </Typography>
-                </Container>
-            </div>
+            <Container maxWidth="sm">
+                <Typography component="h1" variant="h2" align="center" color="textPrimary" gutterBottom>
+                    {title}
+                </Typography>
+                <Typography variant="h5" align="center" color="textSecondary" paragraph>
+                    {abstract}
+                </Typography>
+            </Container>
+
             <Container maxWidth="md">
                 <Grid container spacing={4}>
-                    {this.state.content.map(course => (
+                    {content.map(course => (
                         <Grid item key={course.slug} xs={12} sm={6} md={4}>
                             <Card>
-                                <CardActionArea
-                                    onClick={() => { 
-                                        if (this.props.match.params.hasOwnProperty('courseSlug')) {
-                                            this.props.history.push('/courses/' + this.props.match.params.courseSlug 
-                                                + '/' + course.slug);
-                                        } else {
-                                            this.props.history.push('/courses/' + course.slug);
-                                        } 
-                                    }}
-                                >
-                                    <CardMedia 
-                                        image={"/api/"+course.logo}
+                                <CardActionArea onClick={() => handleClick(course)}>
+                                    <CardMedia
+                                        image={`/api/${course.logo}`}
                                         title={course.title}
-                                        style={{
-                                            maxHeight: "256px",
-                                            height: "256px"
-                                        }}
+                                        style={{ height: 256 }}
                                     />
-                                    <CardContent
-                                        style={{
-                                            maxHeight: "120px",
-                                            height: "120px"
-                                        }}
-                                    >
-                                        <Typography gutterBottom variant="h5" component="h2">
-                                            {course.title} {course.solved && <DoneIcon/>}
+                                    <CardContent style={{ height: 120 }}>
+                                        <Typography gutterBottom variant="h5">
+                                            {course.title} {course.solved && <DoneIcon />}
                                         </Typography>
-                                        <Typography>
-                                            {course.abstract}
-                                        </Typography>
+                                        <Typography>{course.abstract}</Typography>
                                     </CardContent>
                                     <CardContent>
-                                        <LinearProgress
-                                            variant="determinate" 
-                                            value={course.progress} 
-                                        />
+                                        <LinearProgress variant="determinate" value={course.progress} />
                                     </CardContent>
                                 </CardActionArea>
                             </Card>
                         </Grid>
                     ))}
-
                 </Grid>
             </Container>
-        </div>);
-    }
+        </div>
+    );
 }
 
 export default CourseContent;
