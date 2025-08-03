@@ -57,19 +57,22 @@ class Statistics extends React.Component {
     }
 
     componentDidMount() {
-        if (this.props.match.params.hasOwnProperty('courseSlug')) {
-            this.fetchStatistics(this.props.match.params.courseSlug);
+        const { params } = this.props;
+
+        if (params && params.courseSlug) {
+            this.fetchStatistics(params.courseSlug);
         } else {
             this.fetchStatistics();
         }
-
     }
 
     componentWillReceiveProps(nextProps) {
-        if (nextProps.match.params.hasOwnProperty('courseSlug')) {
-            this.fetchStatistics(nextProps.match.params.courseSlug);
-        } else {
-            this.fetchStatistics();
+        if (prevProps.params.courseSlug !== this.props.params.courseSlug) {
+            if (this.props.params.courseSlug) {
+                this.fetchStatistics(this.props.params.courseSlug);
+            } else {
+                this.fetchStatistics();
+            }
         }
     }
 
